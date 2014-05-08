@@ -1,4 +1,4 @@
-/* lab2_part2.v - 4-bit to decimal (0..15)
+/* lab2_part3.v - 4-bit to decimal (0..15)
  *
  * Copyright (c) 2014, Artem Tovbin <arty99 at gmail dot com>
  *
@@ -15,71 +15,56 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-module lab2_part3 (SW, HEX0, HEX1, HEX2, HEX3);
+module lab2_part4 (SW, LEDG, LEDR, HEX1, HEX0);
+  input [17:0] SW;
+  output [8:0] LEDR, LEDG;
+  output [0:6] HEX1, HEX0;
 
-input [17:0] SW;
+  assign LEDR[8:0] = SW[8:0];
 
-output [0:6] HEX0, HEX1, HEX2, HEX3;
+  wire e1, e2;
 
-wire z;
-wire [3:0] M, A;
-assign A[3] = 0;
+  comparator C0 (SW[3:0], e1);
+  comparator C1 (SW[7:4], e2);
 
-/* 
+  assign LEDG[8] = e1 | e2;
 
-	Binary-to-decimal convertion values
-	
-	+---+--+---+---++--+---+
-	|v3 |v2| v1| v0||d1| d0|
-	+---+--+---+---++--+---+
-	| 0 |0 | 0 | 0 ||0 | 0 |
-	+---+--+---+---++--+---+
-	| 0 |0 | 0 | 1 ||0 | 1 |
-	+---+--+---+---++--+---+
-	| 0 |0 | 1 | 0 ||0 | 2 |
-	+---+--+---+---++--+---+
-	| 0 |0 | 1 | 1 ||0 | 3 |             0
-	+---+--+---+---++--+---+          +-----+
-	| 0 |1 | 0 | 0 ||0 | 4 |         5|     |1
-	+---+--+---+---++--+---+          |  6  |
-	| 0 |1 | 0 | 1 ||0 | 5 |          +-----+
-	+---+--+---+---++--+---+         4|     |2
-	| 0 | 1| 1 | 0 ||0 | 6 |          |     |
-	+---+--+---+---++--+---+          +-----+
-	| 0 | 1| 1 | 1 ||0 | 7 |             3
-	+---+--+---+---++--+---+
-	| 1 |0 | 0 | 0 ||0 | 8 |
-	+---+--+---+---++--+---+
-	| 1 |0 | 0 | 1 ||0 | 9 |
-	+---+--+---+---++--+---+
-	| 1 |0 | 1 | 0 ||1 | 0 |
-	+---+--+---+---++--+---+
-	| 1 | 0| 1 | 1 ||1 | 1 |
-	+---+--+---+---++--+---+
-	| 1 |1 | 0 |0  ||1 | 2 |
-	+---+--+---+---++--+---+
-	| 1 | 1| 0 | 1 ||1 | 3 |
-	|   |  |   |   ||  |   |
-	| 1 | 1| 1 | 0 ||1 | 4 |
-	+---+--+---+---++--+---+
-	| 1 |1 | 1 | 1 ||1 | 5 |
-	+---+--+---+---++--+---+
-	
-				+------+
-	  ==> v3 |      |==> m3
-	  ==> v2 |      |==> m2
-	  ==> v1 |      |==> m1
-	  ==> v0 |      |==> m0
-				|      |==> z
-				+------+
-*/
+  wire c1, c2, c3;
+  wire [4:0] S;
 
-  comparator C0 (SW[3:0], z);
-  circuitA A0 (SW[3:0], A[2:0]);
-  mux_4bit_2to1 M0 (z, SW[3:0], A, M);
-  circuitB B0 (z, HEX1);
+  fulladder A0 (SW[0], SW[4], SW[8], S[0], c1);
+  fulladder A1 (SW[1], SW[5], c1, S[1], c2);
+  fulladder A2 (SW[2], SW[6], c2, S[2], c3);
+  fulladder A3 (SW[3], SW[7], c3, S[3], S[4]);
+
+  assign LEDG[4:0] = S[4:0];
+
+  wire z;
+  wire [3:0] A, M;
+
+  comparator9 C2 (S[4:0], z);
+  circuitA AA (S[3:0], A);
+  mux_4bit_2to1 M0 (z, S[3:0], A, M);
+  circuitB BB (z, HEX1);
   b2d_7seg S0 (M, HEX0);
+
+
 endmodule
+
+module fulladder (a, b, ci, s, co);
+  input a, b, ci;
+  output co, s;
+
+  wire d;
+
+  assign d = a ^ b;
+  assign s = d ^ ci;
+  assign co = (b & ~d) | (d & ci);
+endmodule
+
+
+
+
 
 module b2d_7seg (X, SSD);
   input [3:0] X;
@@ -101,13 +86,21 @@ module comparator (V, z);
   assign z = (V[3] & (V[2] | V[1]));
 endmodule
 
+module comparator9 (V, z);
+  input [4:0] V;
+  output z;
+
+  assign z = V[4] | ((V[3] & V[2]) | (V[3] & V[1]));
+endmodule
+
 module circuitA (V, A);
-  input [2:0] V;
-  output [2:0] A;
+  input [3:0] V;
+  output [3:0] A;
 
   assign A[0] = V[0];
   assign A[1] = ~V[1];
-  assign A[2] = (V[2] & V[1]);
+  assign A[2] = (~V[3] & ~V[1]) | (V[2] & V[1]);
+  assign A[3] = (~V[3] & V[1]);
 endmodule
 
 module circuitB (z, SSD);
