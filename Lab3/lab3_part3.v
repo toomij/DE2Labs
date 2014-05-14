@@ -68,7 +68,7 @@ module Dflop (Clk, D, Q);
   assign S = D;
   assign R = ~D;
   
-  wire R_g, S_g, Qa, Qb; /* synthesis keep */
+  wire R_g, S_g, Qa, Qb /* synthesis keep */; 
   
 /*  S_g truth table
  +--+---+----+
