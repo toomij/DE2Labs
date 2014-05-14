@@ -16,7 +16,7 @@
 
 
        +--------------------------------------+
-       |     +------+              +------+   |
+       |     +------+     Qm       +------+   |
   D  --+-----+D    Q+--------------+D    Q+---+-- Q
        |     |      |              |      |   |
        |   ~ |     _|              |     _|   |   _
@@ -47,15 +47,15 @@ module lab3_part3 (SW, LEDR, LEDG);
 
 endmodule
 
-module MSDF(Clk,D,Q);
+module MSDF(Clk, D, Q);
 	
 	input Clk, D;
 	output Q;
 
-	wire Q_m;
+	wire Qm;
 
-	Dflop D0 (~Clk, D, Q_m);
-	Dflop D1 (Clk, D, Q);
+	Dflop D0 (~Clk, D, Qm);
+	Dflop D1 (Clk, Qm, Q);
 
 endmodule
 
@@ -63,12 +63,12 @@ module Dflop (Clk, D, Q);
   input Clk, D;
   output Q;
 
-  wire S,R;
+  wire S, R;
   
   assign S = D;
   assign R = ~D;
   
-  wire R_g, S_g, Qa, Qb /* synthesis keep */ ;
+  wire R_g, S_g, Qa, Qb; /* synthesis keep */
   
 /*  S_g truth table
  +--+---+----+
@@ -94,8 +94,8 @@ module Dflop (Clk, D, Q);
 
 	assign R_g = R & Clk;
 	
-	assign Qa = ~(R_g & Qb);
-	assign Qb = ~(S_g & Qa);
+	assign Qa = ~(R_g | Qb);
+	assign Qb = ~(S_g | Qa);
 	
 	assign Q = Qa;
 
