@@ -17,12 +17,9 @@
  Range of hex:
  
  1111-1111-1111-1111
+ 0 - FFFF (65535)
 
- 0 - FFFF
-
-
-
-              HEX     7      6      5      4
+				  HEX     7      6      5      4
                     +---+  +---+  +---+  +---+
                     |   |  |   |  |   |  |   |
                     | F |  | F |  | F |  | F |
@@ -45,15 +42,15 @@
    |0110 | 6|             +-----+      0100000
    |0111 | 7|                3         0001111
    |1000 | 8|                          0000000
-   |1001 | 9|                          0000100
+   |1001 | 9|                          0001100
    |1010 | A|                          0001000
-   |1011 | B|                          0000000
+   |1011 | B|                          1100000
    |1100 | C|                          0110001
-   |1101 | D|                          0000001
+   |1101 | D|                          1000010
    |1110 | E|                          0110000
    |1111 | F|                          0111000
    +-----+--+
-
+	   
             |  |   |   |    |   |   |   |
      S    +-+--+---+---+----+---+---+---++
         --+D7  D6  D5  D4  D3  D2  D1  D0|
@@ -72,22 +69,22 @@ module lab3_part5 (SW, HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0, KEY);
   reg [15:0] R;
   wire [15:0] Q;
 
-  flipflop F0 (~KEY[1], SW[0], Q[0], ~KEY[0]);
-  flipflop F1 (~KEY[1], SW[1], Q[1], ~KEY[0]);
-  flipflop F2 (~KEY[1], SW[2], Q[2], ~KEY[0]);
-  flipflop F3 (~KEY[1], SW[3], Q[3], ~KEY[0]);
-  flipflop F4 (~KEY[1], SW[4], Q[4], ~KEY[0]);
-  flipflop F5 (~KEY[1], SW[5], Q[5], ~KEY[0]);
-  flipflop F6 (~KEY[1], SW[6], Q[6], ~KEY[0]);
-  flipflop F7 (~KEY[1], SW[7], Q[7], ~KEY[0]);
-  flipflop F8 (~KEY[1], SW[8], Q[8], ~KEY[0]);
-  flipflop F9 (~KEY[1], SW[9], Q[9], ~KEY[0]);
-  flipflop F10 (~KEY[1], SW[10], Q[10], ~KEY[0]);
-  flipflop F11 (~KEY[1], SW[11], Q[11], ~KEY[0]);
-  flipflop F12 (~KEY[1], SW[12], Q[12], ~KEY[0]);
-  flipflop F13 (~KEY[1], SW[13], Q[13], ~KEY[0]);
-  flipflop F14 (~KEY[1], SW[14], Q[14], ~KEY[0]);
-  flipflop F15 (~KEY[1], SW[15], Q[15], ~KEY[0]);
+  D_ff_with_sync_clr F0  (~KEY[1], SW[0],  Q[0],  ~KEY[0]);
+  D_ff_with_sync_clr F1  (~KEY[1], SW[1],  Q[1],  ~KEY[0]);
+  D_ff_with_sync_clr F2  (~KEY[1], SW[2],  Q[2],  ~KEY[0]);
+  D_ff_with_sync_clr F3  (~KEY[1], SW[3],  Q[3],  ~KEY[0]);
+  D_ff_with_sync_clr F4  (~KEY[1], SW[4],  Q[4],  ~KEY[0]);
+  D_ff_with_sync_clr F5  (~KEY[1], SW[5],  Q[5],  ~KEY[0]);
+  D_ff_with_sync_clr F6  (~KEY[1], SW[6],  Q[6],  ~KEY[0]);
+  D_ff_with_sync_clr F7  (~KEY[1], SW[7],  Q[7],  ~KEY[0]);
+  D_ff_with_sync_clr F8  (~KEY[1], SW[8],  Q[8],  ~KEY[0]);
+  D_ff_with_sync_clr F9  (~KEY[1], SW[9],  Q[9],  ~KEY[0]);
+  D_ff_with_sync_clr F10 (~KEY[1], SW[10], Q[10], ~KEY[0]);
+  D_ff_with_sync_clr F11 (~KEY[1], SW[11], Q[11], ~KEY[0]);
+  D_ff_with_sync_clr F12 (~KEY[1], SW[12], Q[12], ~KEY[0]);
+  D_ff_with_sync_clr F13 (~KEY[1], SW[13], Q[13], ~KEY[0]);
+  D_ff_with_sync_clr F14 (~KEY[1], SW[14], Q[14], ~KEY[0]);
+  D_ff_with_sync_clr F15 (~KEY[1], SW[15], Q[15], ~KEY[0]);
   
   always
     R = Q;
@@ -103,24 +100,17 @@ module lab3_part5 (SW, HEX7, HEX6, HEX5, HEX4, HEX3, HEX2, HEX1, HEX0, KEY);
 
 endmodule
 
-module D_latch (Clk, D, Q, Clr);
-  input D, Clk, Clr;
-  output reg Q;
-  always @ (D, Clk, Clr)
-    if (Clk)
-      Q = D;
-	else
-    if (Clr)
-      Q = 0;
-endmodule
-
-module flipflop (Clk, D, Q, Clr);
+module D_ff_with_sync_clr (Clk, D, Q, Clr);
   input Clk, D, Clr;
-  output Q;
-  
-  wire Qm;
-  D_latch D0 (~Clk, D, Qm, Clr);
-  D_latch D1 (Clk, Qm, Q, Clr);
+  output reg Q;
+  always @ ( posedge Clk or posedge Clr)
+	 if (Clr)
+	 begin
+		Q <= 1'b0;
+	 end else
+	 begin
+		Q <= D;
+	 end
 endmodule
 
 module hex_ssd (BIN, SSD);
@@ -132,7 +122,7 @@ module hex_ssd (BIN, SSD);
       0:SSD=7'b0000001;
       1:SSD=7'b1001111;
       2:SSD=7'b0010010;
-      3:SSD=7'b0000110;
+      3:SSD=7'b0001110;
       4:SSD=7'b1001100;
       5:SSD=7'b0100100;
       6:SSD=7'b0100000;
