@@ -1,1 +1,4 @@
 *.bak
+*.?db
+*.qmsg
+*.sof
