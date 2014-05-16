@@ -1,9 +1,8 @@
 *.bak
-<<<<<<< HEAD
 *.?db
 *.qmsg
 *.sof
-=======
+
 /db
 /output_files
 /simulation
@@ -13,4 +12,3 @@
 *.rpt
 *.qpf
 
->>>>>>> 5a129dfebf4a89d37a672bdc9e80f8c5521b17d9
