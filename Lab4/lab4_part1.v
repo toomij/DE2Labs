@@ -1,4 +1,44 @@
+/* lab4_part1.v - 8bit counter
+ *
+ * Copyright (c) 2014, Artem Tovbin <arty99 at gmail dot com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+   +-----------+-------------+------------|
+   |  +-----+  |   +-----+   |  +-----+   |   +-----+
+ En+--+T   Q+--A---+T   Q+---A--+T   Q+---A---+T   Q+--
+      |    _|      |    _|      |    _|       |    _|
+Clk-+-+>   Q|   +--+>   Q|   +--+>   Q|    +--+>   Q|
+    | +--+--+   |  +--+--+   |  +--+--+    |  +--+--+
+    +----+------+-----+------+-----+-------+     |
+Clr------+------------+------------+-------------+
 
+         Positiveedge D-trigger
+       +---+-----+----+----+
+       |T  | Clk |  Q |  Q |
+       +---+-----+----+----+
+       |1  |  0  |  0 |  1 |
+       +---+-----+----+----+
+       |1  |  ^  |  1 |  0 |
+       +---+-----+----+----+
+       |0  |  1  |  1 |  0 |
+       +---+-----+----+----+
+       |0  |  0  |  1 |  0 |
+       +---+-----+----+----+
+       |0  |  ^  |  0 |  1 |
+       +---+-----+----+----+
+ */
+ 
 module lab4_part1 (SW, KEY, LEDG, HEX3, HEX2, HEX1, HEX0);
 
 	input [3:0] SW;
@@ -7,10 +47,18 @@ module lab4_part1 (SW, KEY, LEDG, HEX3, HEX2, HEX1, HEX0);
 	output [7:0] LEDG;
 	output [0:6] HEX3, HEX2, HEX1, HEX0;
 
-	wire [7:0] Q;
+	wire [15:0] Q;
 	wire [3:0] Q2;
 
-	counter_8bit C1 (SW[1], KEY[0], SW[0], Q);
+	counter_16bit C0 (SW[1], KEY[0], SW[0], Q);
+	
+	hex_ssd H0 (Q[3:0], HEX0);
+	hex_ssd H1 (Q[7:4], HEX1);
+	hex_ssd H2 (Q[11:8], HEX2);
+	hex_ssd H3 (Q[15:12], HEX3);
+		
+	counter_4bit C1 (SW[1], KEY[0], SW[0], Q2);
+	assign LEDG[3:0] = Q2;
 
 endmodule
 
@@ -37,11 +85,11 @@ module counter_4bit (En, Clk, Clr, Q);
 endmodule
 
 
-module counter_8bit (En, Clk, Clr, Q);
+module counter_16bit (En, Clk, Clr, Q);
 	input En, Clk, Clr;
-	output [7:0] Q;
+	output [15:0] Q;
 
-	wire [7:0] T, Qs;
+	wire [15:0] T, Qs;
 
 	t_flipflop T0 (En, Clk, Clr, Qs[0]);
 	assign T[0] = En & Qs[0];
@@ -65,7 +113,32 @@ module counter_8bit (En, Clk, Clr, Q);
 	assign T[6] = T[5] & Qs[6];
 	
 	t_flipflop T7 (T[6], Clk, Clr, Qs[7]);
-			
+	assign T[7] = T[6] & Qs[7];
+	
+	t_flipflop T8 (T[7], Clk, Clr, Qs[8]);
+	assign T[8] = T[7] & Qs[8];
+	
+	t_flipflop T9 (T[8], Clk, Clr, Qs[9]);
+	assign T[9] = T[8] & Qs[9];
+	
+	t_flipflop T10 (T[9], Clk, Clr, Qs[10]);
+	assign T[10] = T[9] & Qs[10];
+	
+	t_flipflop T11 (T[10], Clk, Clr, Qs[11]);
+	assign T[11] = T[10] & Qs[11];
+	
+	t_flipflop T12 (T[11], Clk, Clr, Qs[12]);
+	assign T[12] = T[11] & Qs[12];
+	
+	t_flipflop T13 (T[12], Clk, Clr, Qs[13]);
+	assign T[13] = T[12] & Qs[13];
+	
+	t_flipflop T14 (T[13], Clk, Clr, Qs[14]);
+	assign T[14] = T[13] & Qs[14];
+	
+	t_flipflop T15 (T[14], Clk, Clr, Qs[15]);
+	//assign T[15] = T[14] & Qs[15];
+	
 	assign Q = Qs;
 
 endmodule
@@ -81,6 +154,52 @@ module t_flipflop (En, Clk, Clr, Q);
 		Q <= !Q;
 	end
 
+endmodule
+
+
+module b2d_ssd (X, SSD);
+  input [3:0] X;
+  output reg [0:6] SSD;
+
+  always
+    case (X)
+      0:SSD=7'b0000001;
+      1:SSD=7'b1001111;
+      2:SSD=7'b0010010;
+      3:SSD=7'b0000110;
+      4:SSD=7'b1001100;
+      5:SSD=7'b0100100;
+      6:SSD=7'b0100000;
+      7:SSD=7'b0001111;
+      8:SSD=7'b0000000;
+      9:SSD=7'b0001100;
+    endcase
+endmodule
+
+module hex_ssd (BIN, SSD);
+  input [15:0] BIN;
+  output reg [0:6] SSD;
+
+  always begin
+    case(BIN)
+      0:SSD=7'b0000001;
+      1:SSD=7'b1001111;
+      2:SSD=7'b0010010;
+      3:SSD=7'b0000110;
+      4:SSD=7'b1001100;
+      5:SSD=7'b0100100;
+      6:SSD=7'b0100000;
+      7:SSD=7'b0001111;
+      8:SSD=7'b0000000;
+      9:SSD=7'b0001100;
+      10:SSD=7'b0001000;
+      11:SSD=7'b1100000;
+      12:SSD=7'b0110001;
+      13:SSD=7'b1000010;
+      14:SSD=7'b0110000;
+      15:SSD=7'b0111000;
+    endcase
+  end
 endmodule
 
 
